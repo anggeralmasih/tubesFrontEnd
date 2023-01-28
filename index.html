@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tubes Frontend</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Senna -->
+    <script src="/globals/senna-min.js"></script>
+    <!-- Senna -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css"
+        integrity="sha512-rt/SrQ4UNIaGfDyEXZtNcyWvQeOq0QLygHluFQcSjaGB04IxWhal71tKuzP6K8eYXYB6vJV4pHkXcmFGGQ1/0w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
+        integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js"
+        integrity="sha512-7rusk8kGPFynZWu26OKbTeI+QPoYchtxsmPeBqkHIEXJxeun4yJ4ISYe7C6sz9wdxeE1Gk3VxsIWgCZTc+vX3g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="//cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="//cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+</head>
+
+<body data-senna data-senna-surface style="font-family: 'Courier New', Courier, monospace">
+    <nav class="navbar navbar-expand-md bg-primary shadow navbar-light">
+        <div class="container">
+            <a class="navbar-brand text-light" href="/index.html">List Pahlawan</a>
+            <!-- Toggler/collapsibe Button -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- Link -->
+            <div class="collapse navbar-collapse" id="collapsibleNavbar">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link text-light" href="/about.html">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <br>
+    <!-- Awal Content -->
+    <div class="container">
+        <h2>
+            Pahlawan Indonesia
+        </h2>
+        <br>
+        <select class="heroes-search w-100" id="heroes" name="heroes">
+            <option selected disabled value="">Cari Pahlawan...</option>
+            <option value="semua">Semua</option>
+        </select>
+
+        <br><br><br>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered">
+                <thead class="table-primary text-center font-weight-bold">
+                    <tr>
+                        <td>
+                            Nama
+                        </td>
+                        <td>
+                            Tahun Lahir
+                        </td>
+                        <td>
+                            Tahun Meninggal
+                        </td>
+                        <td>
+                            Tahun Kenaikan
+                        </td>
+                        <td>
+                            Deskripsi
+                        </td>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br>
+    <!-- Akhir Content -->
+
+    <script>
+        function fetchHeroes() {
+
+            const url = "https://19104008-mhs.bdv.or.id/api/heroes.php";
+
+            // fetch data dari server
+            fetch(url)
+                .then(response => response.json())
+                .then((res) => {
+
+                    // simpan data ke dalam session storage
+                    sessionStorage.setItem('heroes', JSON.stringify(res))
+                })
+                .catch(err => console.error(err))
+        }
+
+        // datatables data
+        function dataTables(objectData) {
+
+            // hapus tbody content
+            $('table tbody').empty()
+
+            for (let i = 0; i < objectData.length; i++) {
+                var table_content_html = `
+                                <tr>
+                                    <td>` + objectData[i].name + `</td>
+                                    <td>` + objectData[i].birth_year + `</td>
+                                    <td>` + objectData[i].death_year + `</td>
+                                    <td>` + objectData[i].ascension_year + `</td>
+                                    <td>` + objectData[i].description + `</td>
+                                </tr>
+                            `
+
+                $(table_content_html).appendTo('table tbody')
+            }
+        }
+
+        $(document).ready(function () {
+            // dropdown dan search bar jquery library
+            $('.heroes-search').select2({
+                width: 'resolve'
+            });
+
+            // periksa apakah data pahlawan sudah disimpan di session storage
+            if (sessionStorage.getItem('heroes') != null) {
+                // dapatkan data dari session storage
+                var data = JSON.parse(sessionStorage.getItem('heroes'));
+
+                // print
+                console.table(data)
+
+            } else {
+                // jika data pahlawan tidak tersedia, ajax akan fetch data baru
+                // dapatkan data pahlawan ketika dokumen sudah selesai dimuat
+                fetchHeroes();
+
+                // dapatkan data dari session storage
+                var data = JSON.parse(sessionStorage.getItem('heroes'));
+
+                // print
+                console.table(data)
+            }
+
+            // mengulang data di dalam tag select html 
+            for (let i = 0; i < data.length; i++) {
+                var option_html = `<option value="` + data[i].name + `">` + data[i].name + `</option>`
+
+                $(option_html).appendTo('select#heroes')
+            }
+
+            // datatables data
+            dataTables(data)
+
+            // ubah data ketika pengguna mencari pahlawan
+            $('select#heroes').on('change', function () {
+                var values = $(this).val()
+                var results = [];
+
+                // ketika pengguna memilih bukan kata kunci 'semua'
+                if (values != 'semua') {
+                    // cari data berdasar nama pahlawan
+                    for (let j = 0; j < data.length; j++) {
+                        if (data[j].name == values) {
+                            results.push(data[j])
+                        }
+                    }
+
+                    // set data lagi dengan data baru dengan filter
+                    dataTables(results);
+                } else {
+                    // set data dengan data pertama di session storage
+                    dataTables(JSON.parse(sessionStorage.getItem('heroes')));
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
